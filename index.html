@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Skill Program</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0c0c0e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0c0e;
+  --surface: #141418;
+  --surface2: #1c1c22;
+  --border: #252530;
+  --text: #f0f0f4;
+  --muted: #5a5a6e;
+  --muted2: #3a3a48;
+  --red: #ff4545;
+  --red-soft: rgba(255,69,69,0.15);
+  --blue: #4a9eff;
+  --blue-soft: rgba(74,158,255,0.15);
+  --yellow: #ffb830;
+  --yellow-soft: rgba(255,184,48,0.15);
+  --green: #3dd68c;
+  --green-soft: rgba(61,214,140,0.15);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  padding-bottom: 40px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ── HEADER ── */
+.header {
+  padding: 36px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.header-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.header h1 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 2.2rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+/* ── REST TIMER PANEL ── */
+.timer-panel {
+  margin: 0 20px;
+  margin-top: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.timer-panel.running { border-color: var(--green); }
+.timer-panel.done    { border-color: var(--red); }
+
+.timer-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  gap: 16px;
+}
+
+.timer-digits {
+  font-family: 'DM Mono', monospace;
+  font-weight: 500;
+  font-size: 3.2rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--muted2);
+  transition: color 0.3s;
+  min-width: 0;
+}
+.timer-panel.running .timer-digits { color: var(--green); }
+.timer-panel.done    .timer-digits { color: var(--red); animation: pulseDone 0.6s ease 3; }
+
+@keyframes pulseDone {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.3; }
+}
+
+.timer-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.timer-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.timer-panel.running .timer-label { color: var(--green); }
+.timer-panel.done    .timer-label { color: var(--red); }
+
+/* progress bar under digits */
+.timer-bar-track {
+  height: 2px;
+  background: var(--border);
+  margin: 0 20px 16px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.timer-bar-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.5s linear;
+}
+.timer-panel.done .timer-bar-fill { background: var(--red); }
+
+/* preset buttons */
+.timer-presets {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 16px;
+}
+.preset-btn {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+.preset-btn:active { background: var(--border); }
+.preset-btn.reset-btn {
+  color: var(--muted);
+  flex: 0 0 auto;
+  padding: 10px 16px;
+}
+.presets-hidden .timer-presets { display: none; }
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 28px 20px 12px;
+}
+
+
+
+/* ── DAY GRID ── */
+.day-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 0 20px;
+}
+.day-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 8px 20px 0;
+}
+
+.day-card {
+  background: var(--surface);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: transform 0.12s ease;
+  user-select: none;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.day-card:active { transform: scale(0.96); }
+.day-card.rest { cursor: default; opacity: 0.3; }
+.day-card.rest:active { transform: none; }
+
+
+
+.day-bar { height: 3px; width: 100%; flex-shrink: 0; }
+.planche .day-bar { background: var(--red); }
+.lever   .day-bar { background: var(--blue); }
+.skill   .day-bar { background: var(--yellow); }
+.mixed   .day-bar { background: var(--green); }
+.rest    .day-bar { background: var(--border); }
+
+.day-inner { padding: 10px 10px 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+
+.day-num {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.planche .day-num { color: var(--red);    opacity: 0.2; }
+.lever   .day-num { color: var(--blue);   opacity: 0.2; }
+.skill   .day-num { color: var(--yellow); opacity: 0.2; }
+.mixed   .day-num { color: var(--green);  opacity: 0.2; }
+
+.day-name {
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.3;
+  margin-top: 6px;
+}
+.planche .day-name { color: var(--red); }
+.lever   .day-name { color: var(--blue); }
+.skill   .day-name { color: var(--yellow); }
+.mixed   .day-name { color: var(--green); }
+
+/* ── RULES ── */
+.rules-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 20px;
+}
+.rule-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.rule-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.rule-val { font-size: 0.88rem; color: var(--text); line-height: 1.5; }
+
+.deload-banner {
+  margin: 8px 20px 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.deload-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.deload-text { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+.deload-text strong { color: var(--text); font-weight: 500; }
+
+/* ── FORM CUES ── */
+.cue-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 20px;
+}
+.cue-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+.cue-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.cue-card.planche .cue-title { color: var(--red); }
+.cue-card.lever   .cue-title { color: var(--blue); }
+.cue-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.cue-list li {
+  font-size: 0.84rem;
+  color: var(--text);
+  padding-left: 14px;
+  position: relative;
+  line-height: 1.4;
+}
+.cue-list li::before { content: '·'; position: absolute; left: 2px; font-size: 1rem; line-height: 1.35; }
+.cue-card.planche .cue-list li::before { color: var(--red); }
+.cue-card.lever   .cue-list li::before { color: var(--blue); }
+
+/* ── FALLBACK ── */
+.fallback-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0 20px;
+}
+.fallback-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.fallback-card:active { transform: scale(0.96); }
+.fallback-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.fallback-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.fallback-list li {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+  padding-left: 10px;
+  position: relative;
+}
+.fallback-list li::before { content: '—'; position: absolute; left: 0; font-size: 0.65rem; }
+
+/* ── BOTTOM SHEET ── */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.overlay.open { display: flex; }
+
+.sheet {
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.22s ease;
+  touch-action: none;
+}
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.sheet-handle {
+  width: 36px; height: 4px;
+  background: var(--muted2);
+  border-radius: 2px;
+  margin: 12px auto 0;
+  flex-shrink: 0;
+}
+.sheet-head {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.sheet-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.sheet-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-top: 5px;
+  text-transform: uppercase;
+}
+.close-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.sheet-scroll { overflow-y: auto; flex: 1; padding: 0 20px 32px; }
+
+/* ── EXERCISE LIST ── */
+.ex-section { margin-top: 22px; }
+.ex-section-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.ex-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  gap: 16px;
+}
+.ex-row:last-child { border-bottom: none; }
+.ex-left { flex: 1; }
+.ex-name { font-size: 1rem; font-weight: 500; color: var(--text); line-height: 1.3; }
+.ex-note { font-size: 0.8rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+.ex-sets {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  text-align: right;
+  padding-top: 2px;
+}
+
+/* ── PROGRESSION ── */
+.progression {
+  margin-top: 20px;
+  border-radius: 12px;
+  padding: 16px 18px;
+  border: 1px solid;
+}
+.progression.planche { background: var(--red-soft);    border-color: rgba(255,69,69,0.3); }
+.progression.lever   { background: var(--blue-soft);   border-color: rgba(74,158,255,0.3); }
+.progression.skill   { background: var(--yellow-soft); border-color: rgba(255,184,48,0.3); }
+.progression.mixed   { background: var(--green-soft);  border-color: rgba(61,214,140,0.3); }
+.prog-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.progression.planche .prog-label { color: var(--red); }
+.progression.lever   .prog-label { color: var(--blue); }
+.progression.skill   .prog-label { color: var(--yellow); }
+.progression.mixed   .prog-label { color: var(--green); }
+.prog-text { font-size: 0.9rem; line-height: 1.6; color: var(--text); }
+
+/* ── PWA INSTALL BANNER ── */
+.pwa-banner {
+  margin: 20px 20px 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pwa-banner.hidden { display: none; }
+.pwa-text { font-size: 0.84rem; color: var(--muted); line-height: 1.5; }
+.pwa-text strong { color: var(--text); font-weight: 500; }
+.pwa-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pwa-dismiss {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+/* ── DELOAD CALLOUT ── */
+.deload-callout {
+  margin: 8px 20px 0;
+  background: var(--surface);
+  border: 1px solid rgba(255,184,48,0.4);
+  border-radius: 12px;
+  padding: 0;
+  display: flex;
+  overflow: hidden;
+}
+.deload-callout-week {
+  background: rgba(255,184,48,0.15);
+  color: var(--yellow);
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  padding: 14px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(255,184,48,0.25);
+}
+.deload-callout-body {
+  padding: 14px 16px;
+}
+.deload-callout-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--yellow);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.deload-callout-text {
+  font-size: 0.84rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-eyebrow">6-Day / Week</div>
+  <h1>Skill<br>Program</h1>
+</header>
+
+<!-- TIMER PANEL -->
+<div class="section-label">Rest Timer</div>
+<div class="timer-panel presets-hidden" id="timerPanel">
+  <div class="timer-main" onclick="toggleTimerPresets()">
+    <div class="timer-digits" id="timerDigits">–:––</div>
+    <div class="timer-right">
+      <div class="timer-label" id="timerLabel">TAP TO SET</div>
+    </div>
+  </div>
+  <div class="timer-bar-track">
+    <div class="timer-bar-fill" id="timerBarFill"></div>
+  </div>
+  <div class="timer-presets">
+    <button class="preset-btn" onclick="startTimer(90)">1:30</button>
+    <button class="preset-btn" onclick="startTimer(120)">2:00</button>
+    <button class="preset-btn" onclick="startTimer(180)">3:00</button>
+    <button class="preset-btn reset-btn" onclick="resetTimer()">✕</button>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="section-label">Weekly Schedule</div>
+
+
+
+<div class="day-grid">
+  <div class="day-card planche" onclick="openSheet('planche')">
+    <div class="day-bar"></div>
+    <div class="day-inner"><div class="day-num">1</div><div class="day-name">Planche</div></div>
+  </div>
+  <div class="day-card lever" onclick="openSheet('lever')">
+    <div class="day-bar"></div>
+    <div class="day-inner"><div class="day-num">2</div><div class="day-name">Front Lever</div></div>
+  </div>
+  <div class="day-card skill" onclick="openSheet('skill')">
+    <div class="day-bar"></div>
+    <div class="day-inner"><div class="day-num">3</div><div class="day-name">Light Skill</div></div>
+  </div>
+  <div class="day-card rest">
+    <div class="day-bar"></div>
+    <div class="day-inner"><div class="day-num" style="color:var(--muted)">7</div><div class="day-name" style="color:var(--muted)">Rest</div></div>
+  </div>
+</div>
+<div class="day-grid-2">
+  <div class="day-card planche" onclick="openSheet('planche')">
+    <div class="day-bar"></div>
+    <div class="day-inner"><div class="day-num">4</div><div class="day-name">Planche</div></div>
+  </div>
+  <div class="day-card lever" onclick="openSheet('lever')">
+    <div class="day-bar"></div>
+    <div class="day-inner"><div class="day-num">5</div><div class="day-name">Front Lever</div></div>
+  </div>
+  <div class="day-card mixed" onclick="openSheet('mixed')">
+    <div class="day-bar"></div>
+    <div class="day-inner"><div class="day-num">6</div><div class="day-name">Mixed</div></div>
+  </div>
+</div>
+
+<!-- RULES -->
+<div class="section-label">Training Rules</div>
+<div class="rules-grid">
+  <div class="rule-card"><div class="rule-label">Intensity</div><div class="rule-val">RPE 6–7 most sets. Last set max RPE 8.</div></div>
+  <div class="rule-card"><div class="rule-label">Holds</div><div class="rule-val">8–15 sec. Add time for tendon stiffness.</div></div>
+  <div class="rule-card"><div class="rule-label">Reps</div><div class="rule-val">3–8 per set. RPE 8 ceiling always.</div></div>
+  <div class="rule-card"><div class="rule-label">Volume</div><div class="rule-val">~10–14 hard sets. Set 1 = Set 4 quality.</div></div>
+  <div class="rule-card"><div class="rule-label">Rest</div><div class="rule-val">2–3 min between sets.</div></div>
+  <div class="rule-card"><div class="rule-label">Wrists</div><div class="rule-val">If sore, cut volume immediately.</div></div>
+</div>
+<div class="deload-callout">
+  <div class="deload-callout-week">WEEK 5</div>
+  <div class="deload-callout-body">
+    <div class="deload-callout-title">Deload</div>
+    <div class="deload-callout-text">Cut sets ~30–40% · shorten holds · reduce intensity · never chase fatigue</div>
+  </div>
+</div>
+
+<!-- FORM CUES -->
+<div class="section-label">Form Cues</div>
+<div class="cue-grid">
+  <div class="cue-card planche">
+    <div class="cue-title">Planche</div>
+    <ul class="cue-list">
+      <li>Elbows locked hard</li>
+      <li>Push floor away</li>
+      <li>Protract scapula aggressively</li>
+      <li>Posterior pelvic tilt</li>
+      <li>Ribs down</li>
+      <li>Lean from shoulders</li>
+      <li>Wrists active, fingers spread</li>
+    </ul>
+  </div>
+  <div class="cue-card lever">
+    <div class="cue-title">Front Lever</div>
+    <ul class="cue-list">
+      <li>Straight arms</li>
+      <li>Scapula depressed</li>
+      <li>Posterior pelvic tilt</li>
+      <li>Ribs tucked</li>
+      <li>Glutes tight</li>
+      <li>Body rigid — no arch</li>
+    </ul>
+  </div>
+</div>
+
+<!-- FALLBACK -->
+<div class="section-label">Fallback — 3 Days / Week</div>
+<div class="fallback-grid">
+  <div class="fallback-card" onclick="openSheet('fallback-a')" style="border-color:rgba(255,69,69,0.3)">
+    <div class="fallback-title" style="color:var(--red)">Day A</div>
+    <ul class="fallback-list">
+      <li>Planche lean holds</li><li>Pseudo PL push-ups</li><li>Pull-ups</li><li>Tuck planche</li><li>L-sit</li>
+    </ul>
+  </div>
+  <div class="fallback-card" onclick="openSheet('fallback-b')" style="border-color:rgba(74,158,255,0.3)">
+    <div class="fallback-title" style="color:var(--blue)">Day B</div>
+    <ul class="fallback-list">
+      <li>Front lever holds</li><li>Tuck FL rows</li><li>PL lean push-ups</li><li>Hanging leg raises</li><li>Scap pull-ups</li>
+    </ul>
+  </div>
+  <div class="fallback-card" onclick="openSheet('fallback-c')" style="border-color:rgba(255,184,48,0.3)">
+    <div class="fallback-title" style="color:var(--yellow)">Day C</div>
+    <ul class="fallback-list">
+      <li>Planche lean</li><li>FL tuck hold</li><li>PL push-ups</li><li>Pull-ups</li><li>Mobility + scap</li>
+    </ul>
+  </div>
+</div>
+
+<!-- PWA INSTALL BANNER -->
+<div class="pwa-banner hidden" id="pwaBanner">
+  <div class="pwa-text"><strong>Add to Home Screen</strong><br>Use offline, always one tap away.</div>
+  <button class="pwa-btn" id="pwaInstallBtn">Install</button>
+  <button class="pwa-dismiss" onclick="dismissPwa()">✕</button>
+</div>
+
+<!-- BOTTOM SHEET -->
+<div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle" id="sheetHandle"></div>
+    <div class="sheet-head">
+      <div>
+        <div class="sheet-title" id="sheet-title"></div>
+        <div class="sheet-sub"   id="sheet-sub"></div>
+      </div>
+      <button class="close-btn" onclick="closeSheet()">✕</button>
+    </div>
+    <div class="sheet-scroll" id="sheet-body"></div>
+  </div>
+</div>
+
+<script>
+// ─── SHEET DATA ───
+const SHEETS = {
+  planche: {
+    title:'Planche', sub:'Days 1 & 4  ·  RPE 8 max  ·  ~1 hour', color:'planche',
+    body:`
+      <div class="ex-section"><div class="ex-section-title">Warm-up</div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Wrist circles, palm & finger pulses</div></div><div class="ex-sets">2–3 min</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Quadruped scap protraction / retraction</div></div><div class="ex-sets">2 × 10</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Scap push-ups</div></div><div class="ex-sets">2 × 10</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Hollow body hold</div></div><div class="ex-sets">2 × 20 sec</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Light planche lean</div></div><div class="ex-sets">2 × 8 sec</div></div>
+      </div>
+      <div class="ex-section"><div class="ex-section-title">Main Work</div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">1 · Planche Lean Holds</div><div class="ex-note">Protract scapula hard — push the ground away</div></div><div class="ex-sets">5 × 12–20 sec</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">2 · Tuck Planche Attempts</div></div><div class="ex-sets">4 × 6–10 sec</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">3 · Planche Lean Scap Pulses</div></div><div class="ex-sets">3 × 6–8 reps</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">4 · Pseudo Planche Push-ups</div><div class="ex-note">Max forward lean · controlled ↓, pause, explosive ↑</div></div><div class="ex-sets">4 × 6–10</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">5 · Pike Push-ups</div></div><div class="ex-sets">3 × 6–10</div></div>
+      </div>
+      <div class="ex-section"><div class="ex-section-title">Accessory</div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Hollow body hold</div></div><div class="ex-sets">3 × 20–30 sec</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Prone Y-T-W raises</div></div><div class="ex-sets">2 × 8 each</div></div>
+      </div>
+      <div class="ex-section"><div class="ex-section-title">Cooldown · 3–5 min</div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Wrist flexor / extensor stretch</div></div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Lat stretch</div></div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Shoulder extension stretch</div></div></div>
+      </div>
+      <div class="progression planche"><div class="prog-label">Move up when</div><div class="prog-text">5 × 8–10 sec clean holds · no elbow bend · no lost protraction · no hip piking</div></div>`
+  },
+  lever: {
+    title:'Front Lever', sub:'Days 2 & 5  ·  RPE 8 max  ·  ~1 hour', color:'lever',
+    body:`
+      <div class="ex-section"><div class="ex-section-title">Warm-up</div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Dead hang</div></div><div class="ex-sets">2 × 20 sec</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Scap pull-ups</div></div><div class="ex-sets">2 × 8</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Hollow rocks</div></div><div class="ex-sets">2 × 12–15</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Thoracic extension on floor</div></div><div class="ex-sets">1–2 min</div></div>
+      </div>
+      <div class="ex-section"><div class="ex-section-title">Main Work</div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">1 · Front Lever Holds</div><div class="ex-note">Tuck or advanced tuck · perfect form over time</div></div><div class="ex-sets">5 × 8–12 sec</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">2 · Front Lever Raises</div><div class="ex-note">Tuck → horizontal + slow negative</div></div><div class="ex-sets">4 × 4–6 reps</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">3 · Pull-ups</div><div class="ex-note">Chest to bar if possible</div></div><div class="ex-sets">4 × 6–10</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">4 · Front Lever Rows (tuck)</div></div><div class="ex-sets">4 × 6–8</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">5 · Toes-to-bar / Leg Raises</div></div><div class="ex-sets">4 × 10–15</div></div>
+      </div>
+      <div class="ex-section"><div class="ex-section-title">Cooldown · 3–5 min</div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Lat stretch</div></div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Easy dead hang</div></div><div class="ex-sets">1–2 × 20 sec</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Thoracic mobility</div></div></div>
+      </div>
+      <div class="progression lever"><div class="prog-label">Move up when</div><div class="prog-text">5 × 10–12 sec clean holds · stable scapular depression · ribs tucked · no arching</div></div>`
+  },
+  skill: {
+    title:'Light Skill', sub:'Day 3  ·  RPE 6  ·  Feel better after', color:'skill',
+    body:`
+      <div class="ex-section"><div class="ex-section-title">Session</div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Wall handstand hold</div></div><div class="ex-sets">4–5 × 20–40 sec</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Planche lean (easy)</div></div><div class="ex-sets">3 sets</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Front lever tuck hold (easy)</div></div><div class="ex-sets">3 sets</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Scapula push-ups</div></div><div class="ex-sets">3 × 15</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Scapula pull-ups</div></div><div class="ex-sets">3 × 12</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Wrist + shoulder stretch</div></div><div class="ex-sets">end of session</div></div>
+      </div>
+      <div class="progression skill"><div class="prog-label">Intention</div><div class="prog-text">Recovery day disguised as training. Leave feeling better than when you started. No grinding.</div></div>`
+  },
+  mixed: {
+    title:'Mixed Strength', sub:'Day 6  ·  Only if recovery is good', color:'mixed',
+    body:`
+      <div class="ex-section"><div class="ex-section-title">Superset — RPE 7</div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Pseudo planche push-ups</div></div><div class="ex-sets">4 × 8</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Pull-ups</div></div><div class="ex-sets">4 × 8</div></div>
+      </div>
+      <div class="ex-section"><div class="ex-section-title">Skill Work — RPE 6</div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Front lever hold</div></div><div class="ex-sets">3 sets</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Planche lean</div></div><div class="ex-sets">3 sets</div></div>
+      </div>
+      <div class="ex-section"><div class="ex-section-title">Optional Finisher</div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Push-ups — slow eccentric</div><div class="ex-note">Pause at bottom · RPE 9</div></div><div class="ex-sets">1 set</div></div>
+        <div class="ex-row"><div class="ex-left"><div class="ex-name">Hanging hold</div></div><div class="ex-sets">max time</div></div>
+      </div>
+      <div class="progression mixed"><div class="prog-label">Intention</div><div class="prog-text">Technique day — not a grind. If recovery feels off, skip it or keep everything easy.</div></div>`
+  },
+  'fallback-a': {
+    title:'Fallback A', sub:'Planche + Pull Strength  ·  RPE 6–8', color:'planche',
+    body:`<div class="ex-section"><div class="ex-section-title">Exercises</div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Planche lean holds</div></div><div class="ex-sets">4 × 10–15 sec</div></div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Pseudo planche push-ups</div></div><div class="ex-sets">3 × 4–6</div></div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Pull-ups</div></div><div class="ex-sets">3 × 4–6</div></div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Tuck planche holds</div></div><div class="ex-sets">3 × 8–12 sec</div></div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">L-sit</div></div><div class="ex-sets">3 sets</div></div>
+    </div>`
+  },
+  'fallback-b': {
+    title:'Fallback B', sub:'Front Lever + Push  ·  RPE 6–8', color:'lever',
+    body:`<div class="ex-section"><div class="ex-section-title">Exercises</div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Front lever tuck / adv. tuck holds</div></div><div class="ex-sets">4 × 8–12 sec</div></div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Tuck front lever rows</div></div><div class="ex-sets">3 × 4–6</div></div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Planche lean push-ups</div></div><div class="ex-sets">2–3 × 3–5</div></div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Hanging leg raises</div></div><div class="ex-sets">2–3 × 8–12</div></div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Scapula pull-ups</div></div><div class="ex-sets">2 × 8–12</div></div>
+    </div>`
+  },
+  'fallback-c': {
+    title:'Fallback C', sub:'Technique + Mixed  ·  RPE 4–7', color:'skill',
+    body:`<div class="ex-section"><div class="ex-section-title">Exercises</div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Planche lean</div></div><div class="ex-sets">2–3 × 6–10 sec</div></div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Front lever tuck hold</div></div><div class="ex-sets">2–3 × 6–10 sec</div></div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Pseudo planche push-ups</div></div><div class="ex-sets">2–3 × 4–6</div></div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Pull-ups</div></div><div class="ex-sets">2–3 × 4–6</div></div>
+      <div class="ex-row"><div class="ex-left"><div class="ex-name">Mobility + scapula work</div></div></div>
+    </div>`
+  }
+};
+
+const COLOR_MAP = { planche:'var(--red)', lever:'var(--blue)', skill:'var(--yellow)', mixed:'var(--green)' };
+
+// ─── BOTTOM SHEET ───
+let sheetTouchStartY = 0;
+let sheetTouchCurY   = 0;
+
+function openSheet(id) {
+  const d = SHEETS[id]; if (!d) return;
+  document.getElementById('sheet-title').textContent = d.title;
+  document.getElementById('sheet-title').style.color = COLOR_MAP[d.color] || 'var(--text)';
+  document.getElementById('sheet-sub').textContent   = d.sub;
+  document.getElementById('sheet-body').innerHTML    = d.body;
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSheet() {
+  const sheet = document.getElementById('sheet');
+  sheet.style.transform = 'translateY(100%)';
+  sheet.style.opacity   = '0';
+  sheet.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+  setTimeout(() => {
+    document.getElementById('overlay').classList.remove('open');
+    sheet.style.transform = '';
+    sheet.style.opacity   = '';
+    sheet.style.transition = '';
+    document.body.style.overflow = '';
+  }, 220);
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('overlay')) closeSheet();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+// Swipe down to close
+const sheetEl = document.getElementById('sheet');
+sheetEl.addEventListener('touchstart', e => { sheetTouchStartY = e.touches[0].clientY; }, {passive:true});
+sheetEl.addEventListener('touchmove', e => {
+  sheetTouchCurY = e.touches[0].clientY;
+  const dy = Math.max(0, sheetTouchCurY - sheetTouchStartY);
+  sheetEl.style.transform = dy > 0 ? `translateY(${dy}px)` : '';
+}, {passive:true});
+sheetEl.addEventListener('touchend', () => {
+  const dy = sheetTouchCurY - sheetTouchStartY;
+  if (dy > 80) { closeSheet(); }
+  else { sheetEl.style.transform = ''; }
+  sheetTouchCurY = 0;
+});
+
+
+
+// ─── REST TIMER ───
+let timerInterval = null;
+let timerTotal    = 0;
+let timerLeft     = 0;
+let presetsOpen   = false;
+
+function toggleTimerPresets() {
+  presetsOpen = !presetsOpen;
+  document.getElementById('timerPanel').classList.toggle('presets-hidden', !presetsOpen);
+}
+
+function hidePresets() {
+  presetsOpen = false;
+  document.getElementById('timerPanel').classList.add('presets-hidden');
+}
+
+// Close presets when tapping outside timer panel
+document.addEventListener('click', e => {
+  if (presetsOpen && !document.getElementById('timerPanel').contains(e.target)) hidePresets();
+});
+
+function startTimer(secs) {
+  hidePresets();
+  if (timerInterval) clearInterval(timerInterval);
+  timerTotal = secs;
+  timerLeft  = secs;
+  const panel = document.getElementById('timerPanel');
+  panel.classList.remove('done');
+  panel.classList.add('running');
+  document.getElementById('timerLabel').textContent = 'REST';
+  updateTimerUI();
+
+  timerInterval = setInterval(() => {
+    timerLeft--;
+    updateTimerUI();
+    if (timerLeft <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      onTimerDone();
+    }
+  }, 1000);
+}
+
+function onTimerDone() {
+  const panel = document.getElementById('timerPanel');
+  panel.classList.remove('running');
+  panel.classList.add('done');
+  document.getElementById('timerDigits').textContent = 'GO';
+  document.getElementById('timerLabel').textContent  = 'REST DONE';
+  document.getElementById('timerBarFill').style.width = '100%';
+
+  // Haptic (if supported)
+  if (navigator.vibrate) navigator.vibrate([120, 60, 120, 60, 200]);
+
+  // Sound — short beep via Web Audio
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const beep = (freq, start, dur) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = freq;
+      o.type = 'sine';
+      g.gain.setValueAtTime(0, ctx.currentTime + start);
+      g.gain.linearRampToValueAtTime(0.3, ctx.currentTime + start + 0.01);
+      g.gain.linearRampToValueAtTime(0, ctx.currentTime + start + dur);
+      o.start(ctx.currentTime + start);
+      o.stop(ctx.currentTime + start + dur + 0.05);
+    };
+    beep(880, 0,    0.12);
+    beep(880, 0.18, 0.12);
+    beep(1100, 0.36, 0.22);
+  } catch(e) {}
+
+  setTimeout(() => {
+    if (!timerInterval) {
+      panel.classList.remove('done');
+      document.getElementById('timerDigits').textContent = '–:––';
+      document.getElementById('timerLabel').textContent  = 'TAP TO SET';
+      document.getElementById('timerBarFill').style.width = '0%';
+      timerTotal = 0; timerLeft = 0;
+    }
+  }, 3000);
+}
+
+function resetTimer() {
+  hidePresets();
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  timerLeft = 0; timerTotal = 0;
+  const panel = document.getElementById('timerPanel');
+  panel.classList.remove('running', 'done');
+  document.getElementById('timerDigits').textContent  = '–:––';
+  document.getElementById('timerLabel').textContent   = 'TAP TO SET';
+  document.getElementById('timerBarFill').style.width = '0%';
+}
+
+function updateTimerUI() {
+  const m = Math.floor(timerLeft / 60);
+  const s = timerLeft % 60;
+  document.getElementById('timerDigits').textContent = `${m}:${String(s).padStart(2,'0')}`;
+  const pct = timerTotal > 0 ? ((timerTotal - timerLeft) / timerTotal) * 100 : 0;
+  document.getElementById('timerBarFill').style.width = pct + '%';
+}
+
+// ─── PWA INSTALL ───
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('pwaBanner').classList.remove('hidden');
+});
+
+document.getElementById('pwaInstallBtn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('pwaBanner').classList.add('hidden');
+});
+
+function dismissPwa() {
+  document.getElementById('pwaBanner').classList.add('hidden');
+}
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('pwaBanner').classList.add('hidden');
+});
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
